@@ -65,8 +65,14 @@ unsigned long lastCommandTime = 0;
 
 const int SPEED_DELTA = 5;
 const int SPEED_DELTA_DELAY_MS = 50;
-const int TARGET_SPEED = 200;
-int CURRENT_SPEED = 0;
+const int TARGET_SPEED = 100;
+
+// Non-blocking ramping variables
+int targetLeftSpeed = 0;
+int targetRightSpeed = 0;
+int currentLeftSpeed = 0;
+int currentRightSpeed = 0;
+unsigned long lastRampTime = 0;
 
 /////
 // MAIN ARDUINO LOGIC
@@ -86,21 +92,24 @@ void setup() {
   // Initializing the pins for the external controller
   pinMode(CONTROL_PIN_LOW, INPUT);
   pinMode(CONTROL_PIN_HIGH, INPUT);
-  
+
   // Ensure all motors are stopped at the start
-  stopMotors();
+  setTargetSpeeds(0, 0);
 
   // Stabilizing before starting the loop
   delay(4 * DELAY_TIME_MS);
 }
 
 void loop() {
+  // Handle non-blocking ramping first
+  updateMotorRamping();
+
   if (USE_EXTERNAL_CONTROL)
   {
     runExternalControlled();
 
     if (millis() - lastCommandTime > COMMAND_TIMEOUT_MS) {
-      stopMotors();
+      setTargetSpeeds(0, 0);
     }
   }
   else {
@@ -123,13 +132,13 @@ void runExternalControlled()
   }
 
   if (lowBit && highBit) {
-    rampSpeedTo(TARGET_SPEED);
+    setTargetSpeeds(TARGET_SPEED, TARGET_SPEED);
   } else if (highBit) {
-    rotateRight(TARGET_SPEED);
+    setTargetSpeeds(TARGET_SPEED / 2, TARGET_SPEED);
   } else if (lowBit) {
-    rotateLeft(TARGET_SPEED);
+    setTargetSpeeds(TARGET_SPEED, TARGET_SPEED / 2);
   } else {
-    stopMotors();
+    setTargetSpeeds(0, 0);
   }
 }
 
@@ -141,42 +150,7 @@ void runTestMode()
   int i;
 
   for(i = 0; i <= TARGET_SPEED; i = i + 10) {
-    moveMotors(i, 0, 0, 0);
-    delay(DELAY_TIME_MS);
-  }
-
-  for(i = TARGET_SPEED; i >= 0; i = i - 10) {
-    moveMotors(i, 0, 0, 0);
-    delay(DELAY_TIME_MS);
-  }
-
-  for(i = 0; i <= TARGET_SPEED; i = i + 10) {
-    moveMotors(0, i, 0, 0);
-    delay(DELAY_TIME_MS);
-  }
-
-  for(i = TARGET_SPEED; i >= 0; i = i - 10) {
-    moveMotors(0, i, 0, 0);
-    delay(DELAY_TIME_MS);
-  }
-
-  for(i = 0; i <= TARGET_SPEED; i = i + 10) {
-    moveMotors(0, 0, i, 0);
-    delay(DELAY_TIME_MS);
-  }
-
-  for(i = TARGET_SPEED; i >= 0; i = i - 10) {
-    moveMotors(0, 0, i, 0);
-    delay(DELAY_TIME_MS);
-  }
-
-  for(i = 0; i <= TARGET_SPEED; i = i + 10) {
-    moveMotors(0, 0, 0, i);
-    delay(DELAY_TIME_MS);
-  }
-
-  for(i = TARGET_SPEED; i >= 0; i = i - 10) {
-    moveMotors(0, 0, 0, i);
+    moveMotors(i, i, i, i);
     delay(DELAY_TIME_MS);
   }
 }
@@ -185,79 +159,45 @@ void runTestMode()
 // HELPER FUNCTIONS - DIRECTIONAL MOVEMENT
 ////
 
-void stopMotors() {
-  // This function stops all motors by setting their PWM values to 0
-  rampSpeedTo(0);
+void setTargetSpeeds(int leftSpeed, int rightSpeed) {
+  // Set target speeds for non-blocking ramping
+  targetLeftSpeed = leftSpeed;
+  targetRightSpeed = rightSpeed;
 }
 
-void rotateLeft(int speed) {
-  // This function rotates the car left by setting the right motors to a higher speed
-  rampTurnTo(speed, speed / 2);
-}
-
-void rotateRight(int speed) {
-  // This function rotates the car right by setting the left motors to a higher speed
-  rampTurnTo(speed / 2, speed);
-}
-
-void rampSpeedTo(int targetSpeed) {
-  // This function progressively accelerates / deccelerates from
-  // the CURRENT_SPEED to a targetSpeed
-  while (CURRENT_SPEED != targetSpeed) {
-    if (abs(CURRENT_SPEED - targetSpeed) <= SPEED_DELTA) 
-    {
-      CURRENT_SPEED = targetSpeed;
-      moveAllMotors(CURRENT_SPEED);
-      break;
-    }
-
-    if (CURRENT_SPEED < targetSpeed) {
-      CURRENT_SPEED = constrain(CURRENT_SPEED + SPEED_DELTA, CURRENT_SPEED, targetSpeed);
-    } else {
-      CURRENT_SPEED = constrain(CURRENT_SPEED - SPEED_DELTA, targetSpeed, CURRENT_SPEED);
-    }
-
-    moveAllMotors(CURRENT_SPEED);
-    delay(SPEED_DELTA_DELAY_MS);
+void updateMotorRamping() {
+  // Non-blocking ramping function - call this every loop iteration
+  if (millis() - lastRampTime < SPEED_DELTA_DELAY_MS) {
+    return; // Not time to update yet
   }
-}
 
-void rampTurnTo(int leftTargetSpeed, int rightTargetSpeed) {
-  int leftCurrent = CURRENT_SPEED;
-  int rightCurrent = CURRENT_SPEED;
+  lastRampTime = millis();
 
-  while (leftCurrent != leftTargetSpeed || rightCurrent != rightTargetSpeed) {
-    if (abs(leftCurrent - leftTargetSpeed) <= SPEED_DELTA) {
-      leftCurrent = leftTargetSpeed;
-    } else if (leftCurrent < leftTargetSpeed) {
-      leftCurrent = constrain(leftCurrent + SPEED_DELTA, leftCurrent, leftTargetSpeed);
-    } else {
-      leftCurrent = constrain(leftCurrent - SPEED_DELTA, leftTargetSpeed, leftCurrent);
-    }
-
-    if (abs(rightCurrent - rightTargetSpeed) <= SPEED_DELTA) {
-      rightCurrent = rightTargetSpeed;
-    } else if (rightCurrent < rightTargetSpeed) {
-      rightCurrent = constrain(rightCurrent + SPEED_DELTA, rightCurrent, rightTargetSpeed);
-    } else {
-      rightCurrent = constrain(rightCurrent - SPEED_DELTA, rightTargetSpeed, rightCurrent);
-    }
-
-    CURRENT_SPEED = (leftTargetSpeed + rightTargetSpeed) / 2;
-
-    moveMotors(leftCurrent, rightCurrent, leftCurrent, rightCurrent);
-    delay(SPEED_DELTA_DELAY_MS);
+  // Ramp left motors
+  if (abs(currentLeftSpeed - targetLeftSpeed) <= SPEED_DELTA) {
+    currentLeftSpeed = targetLeftSpeed;
+  } else if (currentLeftSpeed < targetLeftSpeed) {
+    currentLeftSpeed = constrain(currentLeftSpeed + SPEED_DELTA, currentLeftSpeed, targetLeftSpeed);
+  } else {
+    currentLeftSpeed = constrain(currentLeftSpeed - SPEED_DELTA, targetLeftSpeed, currentLeftSpeed);
   }
+
+  // Ramp right motors
+  if (abs(currentRightSpeed - targetRightSpeed) <= SPEED_DELTA) {
+    currentRightSpeed = targetRightSpeed;
+  } else if (currentRightSpeed < targetRightSpeed) {
+    currentRightSpeed = constrain(currentRightSpeed + SPEED_DELTA, currentRightSpeed, targetRightSpeed);
+  } else {
+    currentRightSpeed = constrain(currentRightSpeed - SPEED_DELTA, targetRightSpeed, currentRightSpeed);
+  }
+
+  // Apply speeds to motors
+  moveMotors(currentLeftSpeed, currentRightSpeed, currentLeftSpeed, currentRightSpeed);
 }
 
 /////
 // HELPER FUNCTIONS - DRIVER INTERFACE
 ////
-
-void moveAllMotors(int speed) {
-  // This function sets the speed of all motors to the same value
-  moveMotors(speed, speed, speed, speed);
-}
 
 void moveMotors(int topLeftSpeed, int topRightSpeed, int bottomLeftSpeed, int bottomRightSpeed) {
   // Send a specific speed value to each of the motors, constrained to a safe range
