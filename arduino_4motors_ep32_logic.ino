@@ -55,6 +55,7 @@ const int BOTTOM_RIGHT_R_PWM = 3;
 // one of four possible instructions: forward, stop, left, right
 const int CONTROL_PIN_LEFT = 7;
 const int CONTROL_PIN_RIGHT = 8;
+const int CONTROL_PIN_REVERSE = 9;
 
 // OTHER CONSTANTS
 const unsigned long COMMAND_TIMEOUT_MS = 2000;
@@ -64,6 +65,7 @@ unsigned long lastCommandTime = 0;
 const int MAX_SPEED = 255;
 int targetLeftSpeed = 0;
 int targetRightSpeed = 0;
+int isReverse = 0;
 
 /////
 // MAIN ARDUINO LOGIC
@@ -113,6 +115,7 @@ void loop() {
 void runExternalControlled()
 {
   // Read the current status of both flags
+  int reversePin = digitalRead(CONTROL_PIN_REVERSE);
   int leftBit = digitalRead(CONTROL_PIN_LEFT);
   int rightBit = digitalRead(CONTROL_PIN_RIGHT);
 
@@ -120,6 +123,13 @@ void runExternalControlled()
     lastCommandTime = millis();  // Update last command time when signal is detected
   }
 
+  if (reversePin == 1) {
+    isReverse = 1;  // Set reverse mode
+  } else {
+    isReverse = 0;  // Set forward mode
+  }
+
+  // This logic only applies when the robot is not in reverse mode
   if (leftBit == 1 && rightBit == 1) {
     setTargetSpeeds(TARGET_SPEED, TARGET_SPEED);
   } else if (rightBit == 1) {
@@ -146,11 +156,19 @@ void setTargetSpeeds(int leftSpeed, int rightSpeed) {
 ////
 
 void moveMotors(int topLeftSpeed, int topRightSpeed, int bottomLeftSpeed, int bottomRightSpeed) {
-  // Send a specific speed value to each of the motors, constrained to a safe range
-  analogWrite(TOP_LEFT_R_PWM, validateSpeedValue(topLeftSpeed));
-  analogWrite(TOP_RIGHT_R_PWM, validateSpeedValue(topRightSpeed));
-  analogWrite(BOTTOM_LEFT_R_PWM, validateSpeedValue(bottomLeftSpeed));
-  analogWrite(BOTTOM_RIGHT_R_PWM, validateSpeedValue(bottomRightSpeed));
+  if (isReverse == 0) {
+    // Send a specific speed value to each of the motors, constrained to a safe range
+    analogWrite(TOP_LEFT_R_PWM, validateSpeedValue(topLeftSpeed));
+    analogWrite(TOP_RIGHT_R_PWM, validateSpeedValue(topRightSpeed));
+    analogWrite(BOTTOM_LEFT_R_PWM, validateSpeedValue(bottomLeftSpeed));
+    analogWrite(BOTTOM_RIGHT_R_PWM, validateSpeedValue(bottomRightSpeed));
+  }
+  else {
+    analogWrite(TOP_LEFT_R_PWM, 0);
+    analogWrite(TOP_RIGHT_R_PWM, 0);
+    analogWrite(BOTTOM_LEFT_R_PWM, 0);
+    analogWrite(BOTTOM_RIGHT_R_PWM, 0);
+  }
 }
 
 int validateSpeedValue(int speed) {
