@@ -18,6 +18,7 @@ WebServer server(80);
 // Digital output pins for Arduino communication
 int outputPin1 = 27;  // First bit
 int outputPin2 = 26;  // Second bit
+int outputPinReverse = 25; // Reverse control pin
 
 // Command definitions using 2 bits
 // 00 = Stop
@@ -66,6 +67,7 @@ void handleForward() {
   // Send 11 (Forward)
   digitalWrite(outputPin1, HIGH);
   digitalWrite(outputPin2, HIGH);
+  digitalWrite(outputPinReverse, LOW);
   server.send(200);
 }
 
@@ -74,6 +76,7 @@ void handleLeft() {
   // Send 01 (Left)
   digitalWrite(outputPin1, LOW);
   digitalWrite(outputPin2, HIGH);
+  digitalWrite(outputPinReverse, LOW);
   server.send(200);
 }
 
@@ -82,6 +85,7 @@ void handleStop() {
   // Send 00 (Stop)
   digitalWrite(outputPin1, LOW);
   digitalWrite(outputPin2, LOW);
+  digitalWrite(outputPinReverse, LOW);
   server.send(200);
 }
 
@@ -90,15 +94,15 @@ void handleRight() {
   // Send 10 (Right)
   digitalWrite(outputPin1, HIGH);
   digitalWrite(outputPin2, LOW);
+  digitalWrite(outputPinReverse, LOW);
   server.send(200);
 }
 
 void handleReverse() {
   Serial.println("Reverse");
-  // Send 00 (Stop) - treating reverse as stop for this implementation
-  // You can modify this if you want a specific code for reverse
   digitalWrite(outputPin1, LOW);
   digitalWrite(outputPin2, LOW);
+  digitalWrite(outputPinReverse, HIGH);
   server.send(200);
 }
 
