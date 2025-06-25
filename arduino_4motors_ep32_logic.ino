@@ -1,7 +1,5 @@
 #include <Arduino.h>
 
-#define USE_EXTERNAL_CONTROL true
-
 // Code for a SumoBot robot car using an Arduino UNO R3,
 // four DC motor drivers and four motors.
 
@@ -103,16 +101,14 @@ void loop() {
   // Handle non-blocking ramping first
   updateMotorRamping();
 
-  if (USE_EXTERNAL_CONTROL)
-  {
-    runExternalControlled();
+  // Get new signal, if any
+  runExternalControlled();
 
-    if (millis() - lastCommandTime > COMMAND_TIMEOUT_MS) {
-      setTargetSpeeds(0, 0);
-    }
-  }
-  else {
-    runTestMode();
+  // In case the last command was too long ago, stop the motors
+  // to prevent them from running indefinitely without a command
+  // This is a safety feature to ensure the motors stop if no command is received
+  if (millis() - lastCommandTime > COMMAND_TIMEOUT_MS) {
+    setTargetSpeeds(0, 0);
   }
 }
 
@@ -138,19 +134,6 @@ void runExternalControlled()
     setTargetSpeeds(TARGET_SPEED, 0);
   } else {
     setTargetSpeeds(0, 0);
-  }
-}
-
-void runTestMode()
-{
-  // We will iterate in speed increments of 10
-  // from 0 to TARGET_SPEED for forward motion on all motors one by one
-  // in circular order.
-  int i;
-
-  for(i = 0; i <= TARGET_SPEED; i = i + 10) {
-    moveMotors(i, i, i, i);
-    delay(SPEED_DELTA_DELAY_MS);
   }
 }
 
