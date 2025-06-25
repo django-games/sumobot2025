@@ -55,16 +55,16 @@ const int BOTTOM_RIGHT_R_PWM = 3;
 // with the pilot through Wi-Fi. From the Arduino's perspective,
 // we will receive a bitmask with two pins, and convert that into
 // one of four possible instructions: forward, stop, left, right
-const int CONTROL_PIN_LOW = 7;
-const int CONTROL_PIN_HIGH = 8;
+const int CONTROL_PIN_LEFT = 7;
+const int CONTROL_PIN_RIGHT = 8;
 
 // OTHER CONSTANTS
 const unsigned long COMMAND_TIMEOUT_MS = 1000;
 unsigned long lastCommandTime = 0;
 
-const int SPEED_DELTA = 10;
-const int SPEED_DELTA_DELAY_MS = 25;
-const int TARGET_SPEED = 240;
+const int SPEED_DELTA = 20;
+const int SPEED_DELTA_DELAY_MS = 15;
+const int TARGET_SPEED = 255;
 
 // Non-blocking ramping variables
 int targetLeftSpeed = 0;
@@ -89,8 +89,8 @@ void setup() {
   pinMode(BOTTOM_RIGHT_R_PWM, OUTPUT);
 
   // Initializing the pins for the external controller
-  pinMode(CONTROL_PIN_LOW, INPUT);
-  pinMode(CONTROL_PIN_HIGH, INPUT);
+  pinMode(CONTROL_PIN_LEFT, INPUT);
+  pinMode(CONTROL_PIN_RIGHT, INPUT);
 
   // Ensure all motors are stopped at the start
   setTargetSpeeds(0, 0);
@@ -123,19 +123,19 @@ void loop() {
 void runExternalControlled()
 {
   // Read the current status of both flags
-  int lowBit = digitalRead(CONTROL_PIN_LOW);
-  int highBit = digitalRead(CONTROL_PIN_HIGH);
+  int leftBit = digitalRead(CONTROL_PIN_LEFT);
+  int rightBit = digitalRead(CONTROL_PIN_RIGHT);
 
-  if (lowBit || highBit) {
+  if (leftBit == 1 || rightBit == 1) {
     lastCommandTime = millis();  // Update last command time when signal is detected
   }
 
-  if (lowBit && highBit) {
+  if (leftBit == 1 && rightBit == 1) {
     setTargetSpeeds(TARGET_SPEED, TARGET_SPEED);
-  } else if (highBit) {
-    setTargetSpeeds(TARGET_SPEED / 2, TARGET_SPEED);
-  } else if (lowBit) {
-    setTargetSpeeds(TARGET_SPEED, TARGET_SPEED / 2);
+  } else if (rightBit == 1) {
+    setTargetSpeeds(TARGET_SPEED, 0);
+  } else if (leftBit == 1) {
+    setTargetSpeeds(0, TARGET_SPEED);
   } else {
     setTargetSpeeds(0, 0);
   }
