@@ -1,4 +1,4 @@
-/*  
+/*
   Rui Santos & Sara Santos - Random Nerd Tutorials
   https://RandomNerdTutorials.com/esp32-wi-fi-car-robot-arduino/
   Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files.
@@ -21,7 +21,7 @@ int outputPin2 = 26;  // Second bit
 
 // Command definitions using 2 bits
 // 00 = Stop
-// 11 = Forward  
+// 11 = Forward
 // 01 = Left
 // 10 = Right
 
@@ -43,11 +43,6 @@ void handleRoot() {
       function stopRobot() { fetch('/stop'); }
       function moveRight() { fetch('/right'); }
       function moveReverse() { fetch('/reverse'); }
-
-      function updateMotorSpeed(pos) {
-        document.getElementById('motorSpeed').innerHTML = pos;
-        fetch(`/speed?value=${pos}`);
-      }
     </script>
   </head>
   <body>
@@ -61,8 +56,6 @@ void handleRoot() {
       </p>
     </div>
     <p><button class="button" onclick="moveReverse()">REVERSE</button></p>
-    <p>Motor Speed: <span id="motorSpeed">0</span></p>
-    <input type="range" min="0" max="100" step="25" id="motorSlider" oninput="updateMotorSpeed(this.value)" value="0"/>
   </body>
   </html>)rawliteral";
   server.send(200, "text/html", html);
@@ -109,28 +102,17 @@ void handleReverse() {
   server.send(200);
 }
 
-void handleSpeed() {
-  if (server.hasArg("value")) {
-    valueString = server.arg("value");
-    int value = valueString.toInt();
-    Serial.println("Speed setting received: " + String(value));
-    // Note: Speed control removed since we're only sending digital commands
-    // The Arduino will handle motor speed control
-  }
-  server.send(200);
-}
-
 void setup() {
   Serial.begin(115200);
 
   // Set the output pins for Arduino communication
   pinMode(outputPin1, OUTPUT);
   pinMode(outputPin2, OUTPUT);
-  
+
   // Initialize pins to Stop state (00)
   digitalWrite(outputPin1, LOW);
   digitalWrite(outputPin2, LOW);
-  
+
   // Connect to Wi-Fi
   Serial.print("Connecting to ");
   Serial.println(ssid);
@@ -151,7 +133,6 @@ void setup() {
   server.on("/stop", handleStop);
   server.on("/right", handleRight);
   server.on("/reverse", handleReverse);
-  server.on("/speed", handleSpeed);
 
   // Start the server
   server.begin();
