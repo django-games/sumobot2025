@@ -133,9 +133,9 @@ void runExternalControlled()
   if (leftBit == 1 && rightBit == 1) {
     setTargetSpeeds(TARGET_SPEED, TARGET_SPEED);
   } else if (rightBit == 1) {
-    setTargetSpeeds(TARGET_SPEED, 0);
-  } else if (leftBit == 1) {
     setTargetSpeeds(0, TARGET_SPEED);
+  } else if (leftBit == 1) {
+    setTargetSpeeds(TARGET_SPEED, 0);
   } else {
     setTargetSpeeds(0, 0);
   }
