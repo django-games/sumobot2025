@@ -57,19 +57,13 @@ const int CONTROL_PIN_LEFT = 7;
 const int CONTROL_PIN_RIGHT = 8;
 
 // OTHER CONSTANTS
-const unsigned long COMMAND_TIMEOUT_MS = 1000;
+const unsigned long COMMAND_TIMEOUT_MS = 2000;
 unsigned long lastCommandTime = 0;
 
-const int SPEED_DELTA = 20;
-const int SPEED_DELTA_DELAY_MS = 15;
-const int TARGET_SPEED = 255;
-
-// Non-blocking ramping variables
+// Speed variables
+const int MAX_SPEED = 255;
 int targetLeftSpeed = 0;
 int targetRightSpeed = 0;
-int currentLeftSpeed = 0;
-int currentRightSpeed = 0;
-unsigned long lastRampTime = 0;
 
 /////
 // MAIN ARDUINO LOGIC
@@ -94,12 +88,12 @@ void setup() {
   setTargetSpeeds(0, 0);
 
   // Stabilizing before starting the loop
-  delay(4 * SPEED_DELTA_DELAY_MS);
+  delay(1000);
 }
 
 void loop() {
-  // Handle non-blocking ramping first
-  updateMotorRamping();
+  // Send movement signal
+  moveMotors(targetLeftSpeed, targetRightSpeed, targetLeftSpeed, targetRightSpeed);
 
   // Get new signal, if any
   runExternalControlled();
@@ -145,36 +139,6 @@ void setTargetSpeeds(int leftSpeed, int rightSpeed) {
   // Set target speeds for non-blocking ramping
   targetLeftSpeed = leftSpeed;
   targetRightSpeed = rightSpeed;
-}
-
-void updateMotorRamping() {
-  // Non-blocking ramping function - call this every loop iteration
-  if (millis() - lastRampTime < SPEED_DELTA_DELAY_MS) {
-    return; // Not time to update yet
-  }
-
-  lastRampTime = millis();
-
-  // Ramp left motors
-  if (abs(currentLeftSpeed - targetLeftSpeed) <= SPEED_DELTA) {
-    currentLeftSpeed = targetLeftSpeed;
-  } else if (currentLeftSpeed < targetLeftSpeed) {
-    currentLeftSpeed = constrain(currentLeftSpeed + SPEED_DELTA, currentLeftSpeed, targetLeftSpeed);
-  } else {
-    currentLeftSpeed = constrain(currentLeftSpeed - SPEED_DELTA, targetLeftSpeed, currentLeftSpeed);
-  }
-
-  // Ramp right motors
-  if (abs(currentRightSpeed - targetRightSpeed) <= SPEED_DELTA) {
-    currentRightSpeed = targetRightSpeed;
-  } else if (currentRightSpeed < targetRightSpeed) {
-    currentRightSpeed = constrain(currentRightSpeed + SPEED_DELTA, currentRightSpeed, targetRightSpeed);
-  } else {
-    currentRightSpeed = constrain(currentRightSpeed - SPEED_DELTA, targetRightSpeed, currentRightSpeed);
-  }
-
-  // Apply speeds to motors
-  moveMotors(currentLeftSpeed, currentRightSpeed, currentLeftSpeed, currentRightSpeed);
 }
 
 /////
