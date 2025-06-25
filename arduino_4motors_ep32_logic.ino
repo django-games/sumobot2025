@@ -59,13 +59,12 @@ const int CONTROL_PIN_LOW = 7;
 const int CONTROL_PIN_HIGH = 8;
 
 // OTHER CONSTANTS
-const int DELAY_TIME_MS = 300; // Delay time in milliseconds for motor speed changes
 const unsigned long COMMAND_TIMEOUT_MS = 1000;
 unsigned long lastCommandTime = 0;
 
-const int SPEED_DELTA = 5;
-const int SPEED_DELTA_DELAY_MS = 50;
-const int TARGET_SPEED = 100;
+const int SPEED_DELTA = 10;
+const int SPEED_DELTA_DELAY_MS = 25;
+const int TARGET_SPEED = 240;
 
 // Non-blocking ramping variables
 int targetLeftSpeed = 0;
@@ -97,7 +96,7 @@ void setup() {
   setTargetSpeeds(0, 0);
 
   // Stabilizing before starting the loop
-  delay(4 * DELAY_TIME_MS);
+  delay(4 * SPEED_DELTA_DELAY_MS);
 }
 
 void loop() {
@@ -151,7 +150,7 @@ void runTestMode()
 
   for(i = 0; i <= TARGET_SPEED; i = i + 10) {
     moveMotors(i, i, i, i);
-    delay(DELAY_TIME_MS);
+    delay(SPEED_DELTA_DELAY_MS);
   }
 }
 
