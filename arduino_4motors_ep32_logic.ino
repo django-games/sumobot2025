@@ -85,9 +85,11 @@ void setup() {
   // Initializing the pins for the external controller
   pinMode(CONTROL_PIN_LEFT, INPUT);
   pinMode(CONTROL_PIN_RIGHT, INPUT);
+  pinMode(CONTROL_PIN_REVERSE, INPUT);
 
   // Ensure all motors are stopped at the start
   setTargetSpeeds(0, 0);
+  isReverse = 0;  // Start in forward mode
 
   // Stabilizing before starting the loop
   delay(1000);
@@ -119,7 +121,7 @@ void runExternalControlled()
   int leftBit = digitalRead(CONTROL_PIN_LEFT);
   int rightBit = digitalRead(CONTROL_PIN_RIGHT);
 
-  if (leftBit == 1 || rightBit == 1) {
+  if (leftBit == 1 || rightBit == 1 || reversePin == 1) {
     lastCommandTime = millis();  // Update last command time when signal is detected
   }
 
@@ -168,6 +170,8 @@ void moveMotors(int topLeftSpeed, int topRightSpeed, int bottomLeftSpeed, int bo
     analogWrite(TOP_RIGHT_R_PWM, 0);
     analogWrite(BOTTOM_LEFT_R_PWM, 0);
     analogWrite(BOTTOM_RIGHT_R_PWM, 0);
+
+    // TO BE COMPLETED
   }
 }
 
