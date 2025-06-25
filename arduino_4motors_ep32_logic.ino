@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-#define USE_EXTERNAL_CONTROL false
+#define USE_EXTERNAL_CONTROL true
 
 // Code for a SumoBot robot car using an Arduino UNO R3,
 // four DC motor drivers and four motors.
