@@ -106,7 +106,7 @@ void setup() {
 
 void loop() {
   // Send movement signal
-  moveMotors(targetLeftSpeed, targetRightSpeed, targetLeftSpeed, targetRightSpeed);
+  moveMotors(targetLeftSpeed, targetRightSpeed);
 
   // Get new signal, if any
   runExternalControlled();
@@ -166,7 +166,7 @@ void setTargetSpeeds(int leftSpeed, int rightSpeed) {
 // HELPER FUNCTIONS - DRIVER INTERFACE
 ////
 
-void moveMotors(int topLeftSpeed, int topRightSpeed, int bottomLeftSpeed, int bottomRightSpeed) {
+void moveMotors(int leftSpeed, int rightSpeed) {
   if (isReverse == 0) {
     // Send a specific speed value to each of the motors, constrained to a safe range
     digitalWrite(TOP_LEFT_L_PWM, LOW);
@@ -175,10 +175,10 @@ void moveMotors(int topLeftSpeed, int topRightSpeed, int bottomLeftSpeed, int bo
     digitalWrite(BOTTOM_RIGHT_L_PWM, LOW);
 
     // Set the PWM values for forward motion
-    analogWrite(TOP_LEFT_R_PWM, validateSpeedValue(topLeftSpeed));
-    analogWrite(TOP_RIGHT_R_PWM, validateSpeedValue(topRightSpeed));
-    analogWrite(BOTTOM_LEFT_R_PWM, validateSpeedValue(bottomLeftSpeed));
-    analogWrite(BOTTOM_RIGHT_R_PWM, validateSpeedValue(bottomRightSpeed));
+    analogWrite(TOP_LEFT_R_PWM, validateSpeedValue(leftSpeed));
+    analogWrite(TOP_RIGHT_R_PWM, validateSpeedValue(rightSpeed));
+    analogWrite(BOTTOM_LEFT_R_PWM, validateSpeedValue(leftSpeed));
+    analogWrite(BOTTOM_RIGHT_R_PWM, validateSpeedValue(rightSpeed));
   }
   else {
     // In reverse mode, we will use the L_PWM pins for backward motion
