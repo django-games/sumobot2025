@@ -167,61 +167,78 @@ void setTargetSpeeds(int leftSpeed, int rightSpeed) {
 
 void moveMotors(int leftSpeed, int rightSpeed) {
   if (isReverse == 0) {
+
+    // In forward mode, we will use the R_PWM pins for forward motionif l
     // FORWARD
     if (leftSpeed == rightSpeed)
     {
-       // Send a specific speed value to each of the motors, constrained to a safe range
-      digitalWrite(TOP_LEFT_L_PWM, LOW);
-      digitalWrite(TOP_RIGHT_L_PWM, LOW);
-      digitalWrite(BOTTOM_LEFT_L_PWM, LOW);
-      digitalWrite(BOTTOM_RIGHT_L_PWM, LOW);
+      if (leftSpeed == 0 && rightSpeed == 0) {
+            analogWrite(TOP_LEFT_R_PWM, 0);
+        digitalWrite(TOP_RIGHT_L_PWM, LOW);
+        digitalWrite(BOTTOM_RIGHT_L_PWM, LOW);
+        analogWrite(BOTTOM_LEFT_R_PWM, 0);
 
-      // Set the PWM values for forward motion
-      analogWrite(TOP_LEFT_R_PWM, validateSpeedValue(leftSpeed));
-      analogWrite(TOP_RIGHT_R_PWM, validateSpeedValue(rightSpeed));
-      analogWrite(BOTTOM_LEFT_R_PWM, validateSpeedValue(leftSpeed));
+        // Set the PWM values for forward motion
+        digitalWrite(TOP_LEFT_L_PWM, LOW);
+        analogWrite(TOP_RIGHT_R_PWM, 0);
+        digitalWrite(BOTTOM_LEFT_L_PWM, LOW);
+        analogWrite(BOTTOM_RIGHT_R_PWM, 0);
+      }
+      else {
+         // Send a specific speed value to each of the motors, constrained to a safe range
+       analogWrite(TOP_LEFT_R_PWM, 0);
+       digitalWrite(TOP_RIGHT_L_PWM, LOW);
+       digitalWrite(BOTTOM_RIGHT_L_PWM, LOW);
+       analogWrite(BOTTOM_LEFT_R_PWM, 0);
+
+       // Set the PWM values for forward motion
+       digitalWrite(TOP_LEFT_L_PWM, HIGH);
+       analogWrite(TOP_RIGHT_R_PWM, validateSpeedValue(rightSpeed));
+       digitalWrite(BOTTOM_LEFT_L_PWM, HIGH);
       analogWrite(BOTTOM_RIGHT_R_PWM, validateSpeedValue(rightSpeed));
+      }
+
     }
     // ROTATE LEFT
     else if (leftSpeed > rightSpeed) {
       // Set the PWM values for forward motion on the left motors
       analogWrite(TOP_RIGHT_R_PWM, 0);
       analogWrite(BOTTOM_RIGHT_R_PWM, 0);
-      digitalWrite(TOP_LEFT_L_PWM, LOW);
-      digitalWrite(BOTTOM_LEFT_L_PWM, LOW);
+      digitalWrite(TOP_LEFT_L_PWM, HIGH);
+      digitalWrite(BOTTOM_LEFT_L_PWM, HIGH);
 
       // Set the L_PWM pins to LOW for backward motion
-      analogWrite(TOP_LEFT_R_PWM, validateSpeedValue(leftSpeed));
-      analogWrite(BOTTOM_LEFT_R_PWM, validateSpeedValue(leftSpeed));
+      analogWrite(TOP_LEFT_R_PWM, 0);
+      analogWrite(BOTTOM_LEFT_R_PWM, 0);
       digitalWrite(TOP_RIGHT_L_PWM, HIGH);
       digitalWrite(BOTTOM_RIGHT_L_PWM, HIGH);
     }
     // ROTATE RIGHT
     else if (rightSpeed > leftSpeed) {
       // Set the PWM values for forward motion on the right motors
-      analogWrite(TOP_LEFT_R_PWM, 0);
-      analogWrite(BOTTOM_LEFT_R_PWM, 0);
+      analogWrite(TOP_LEFT_R_PWM, MAX_SPEED);
+      analogWrite(BOTTOM_LEFT_R_PWM, MAX_SPEED);
       digitalWrite(TOP_RIGHT_L_PWM, LOW);
       digitalWrite(BOTTOM_RIGHT_L_PWM, LOW);
 
       // Set the L_PWM pins to LOW for backward motion
       analogWrite(TOP_RIGHT_R_PWM, validateSpeedValue(rightSpeed));
       analogWrite(BOTTOM_RIGHT_R_PWM, validateSpeedValue(rightSpeed));
-      digitalWrite(TOP_LEFT_L_PWM, HIGH);
-      digitalWrite(BOTTOM_LEFT_L_PWM, HIGH);
+      digitalWrite(TOP_LEFT_L_PWM, LOW);
+      digitalWrite(BOTTOM_LEFT_L_PWM, LOW);
     }
   }
   else {
     // In reverse mode, we will use the L_PWM pins for backward motion
-    analogWrite(TOP_LEFT_R_PWM, 0);
+    analogWrite(TOP_LEFT_R_PWM, MAX_SPEED);
     analogWrite(TOP_RIGHT_R_PWM, 0);
-    analogWrite(BOTTOM_LEFT_R_PWM, 0);
+    analogWrite(BOTTOM_LEFT_R_PWM, MAX_SPEED);
     analogWrite(BOTTOM_RIGHT_R_PWM, 0);
 
     // Set the PWM values for backward motion
-    digitalWrite(TOP_LEFT_L_PWM, HIGH);
+    digitalWrite(TOP_LEFT_L_PWM, LOW);
     digitalWrite(TOP_RIGHT_L_PWM, HIGH);
-    digitalWrite(BOTTOM_LEFT_L_PWM, HIGH);
+    digitalWrite(BOTTOM_LEFT_L_PWM, LOW);
     digitalWrite(BOTTOM_RIGHT_L_PWM, HIGH);
   }
 }
