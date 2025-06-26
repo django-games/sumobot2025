@@ -18,7 +18,7 @@ WebServer server(80);
 // Digital output pins for Arduino communication
 int outputPin1 = 27;  // First bit
 int outputPin2 = 26;  // Second bit
-int outputPinReverse = 25; // Reverse control pin
+int outputPinReverse = 14; // Reverse control pin
 
 // Command definitions using 2 bits
 // 00 = Stop
@@ -112,10 +112,12 @@ void setup() {
   // Set the output pins for Arduino communication
   pinMode(outputPin1, OUTPUT);
   pinMode(outputPin2, OUTPUT);
+  pinMode(outputPinReverse, OUTPUT);
 
   // Initialize pins to Stop state (00)
   digitalWrite(outputPin1, LOW);
   digitalWrite(outputPin2, LOW);
+  digitalWrite(outputPinReverse, LOW);
 
   // Connect to Wi-Fi
   Serial.print("Connecting to ");

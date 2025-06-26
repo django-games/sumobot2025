@@ -64,7 +64,7 @@ const int BOTTOM_RIGHT_L_PWM = 13;
 // one of four possible instructions: forward, stop, left, right
 const int CONTROL_PIN_LEFT = 7;
 const int CONTROL_PIN_RIGHT = 8;
-const int CONTROL_PIN_REVERSE = 9;
+const int CONTROL_PIN_REVERSE = 6;
 
 // OTHER CONSTANTS
 const unsigned long COMMAND_TIMEOUT_MS = 2000;
@@ -134,7 +134,7 @@ void runExternalControlled()
     lastCommandTime = millis();  // Update last command time when signal is detected
   }
 
-  if (reversePin == 1) {
+  if (reversePin == HIGH) {
     isReverse = 1;  // Set reverse mode
   } else {
     isReverse = 0;  // Set forward mode
