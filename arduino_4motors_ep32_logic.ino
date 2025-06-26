@@ -16,18 +16,24 @@
 /// so they will be set to LOW (by connecting to GND).
 /// The enable pins (R_EN and L_EN) will be set to HIGH to enable the motors,
 /// by connecting them to VCC (5V).
-/// We will ONLY use one direction (forward/R) at all times.
+/// Forward direction will be controlled by the R_PWM pins,
+/// and will be our main direction with complete control over speed.
+
+/// The L_PWM pins will be used for backward motion.
+/// but through digital pins, not PWM. So they will be either HIGH or LOW.
+/// We will take EXTRA care to ensure that we never set both R_PWM and L_PWM
+/// to a non-zero value at the same time, as this would cause a short circuit
+/// and potentially damage the motors or the drivers.
 /// This is because if we set a non-zero value on both R_PWM and L_PWM,
 /// the motors will go kaput! We don't want that!
-/// Therefore, we will use a PWM pin for R_PWM, and set L_PWM to LOW
-/// through GND.
 
 /// The naming convention for each driver corresponds to its location on the car.
 
 /// This setup means we will have 24 pins to connect in total, of which
 /// 4 require PWM control directly from the Arduino board (R_PWM for each driver),
+/// 4 require digital control for backward motion (L_PWM for each driver),
 /// 8 of them are enable pins (R_EN and L_EN for each driver) connected to VCC (5V),
-/// and 12 of them are current sensing pins (R_IS and L_IS for each driver) + L_PWM
+/// and 8 of them are current sensing pins (R_IS and L_IS for each driver)
 /// connected to GND.
 
 // PIN ASSIGNMENT
@@ -37,8 +43,11 @@ const int TOP_RIGHT_R_PWM = 5;
 const int BOTTOM_LEFT_R_PWM = 11;
 const int BOTTOM_RIGHT_R_PWM = 3;
 
-/// PWM pins (backward motion) (hardwired to GND, do NOT leave floating)
-/// TOP_LEFT_L_PWM, TOP_RIGHT_L_PWM, BOTTOM_LEFT_L_PWM, and BOTTOM_RIGHT_L_PWM
+/// PWM pins (backward motion) (we will use Digital Pins 2, 4, 12 and 13 for these)
+const int TOP_LEFT_L_PWM = 2;
+const int TOP_RIGHT_L_PWM = 4;
+const int BOTTOM_LEFT_L_PWM = 12;
+const int BOTTOM_RIGHT_L_PWM = 13;
 
 /// IS pins (current sensing, hardwired to GND)
 /// TOP_LEFT_R_IS, TOP_RIGHT_R_IS, BOTTOM_LEFT_R_IS, BOTTOM_RIGHT_R_IS
@@ -160,18 +169,29 @@ void setTargetSpeeds(int leftSpeed, int rightSpeed) {
 void moveMotors(int topLeftSpeed, int topRightSpeed, int bottomLeftSpeed, int bottomRightSpeed) {
   if (isReverse == 0) {
     // Send a specific speed value to each of the motors, constrained to a safe range
+    digitalWrite(TOP_LEFT_L_PWM, LOW);
+    digitalWrite(TOP_RIGHT_L_PWM, LOW);
+    digitalWrite(BOTTOM_LEFT_L_PWM, LOW);
+    digitalWrite(BOTTOM_RIGHT_L_PWM, LOW);
+
+    // Set the PWM values for forward motion
     analogWrite(TOP_LEFT_R_PWM, validateSpeedValue(topLeftSpeed));
     analogWrite(TOP_RIGHT_R_PWM, validateSpeedValue(topRightSpeed));
     analogWrite(BOTTOM_LEFT_R_PWM, validateSpeedValue(bottomLeftSpeed));
     analogWrite(BOTTOM_RIGHT_R_PWM, validateSpeedValue(bottomRightSpeed));
   }
   else {
+    // In reverse mode, we will use the L_PWM pins for backward motion
     analogWrite(TOP_LEFT_R_PWM, 0);
     analogWrite(TOP_RIGHT_R_PWM, 0);
     analogWrite(BOTTOM_LEFT_R_PWM, 0);
     analogWrite(BOTTOM_RIGHT_R_PWM, 0);
 
-    // TO BE COMPLETED
+    // Set the PWM values for backward motion
+    digitalWrite(TOP_LEFT_L_PWM, HIGH);
+    digitalWrite(TOP_RIGHT_L_PWM, HIGH);
+    digitalWrite(BOTTOM_LEFT_L_PWM, HIGH);
+    digitalWrite(BOTTOM_RIGHT_L_PWM, HIGH);
   }
 }
 
