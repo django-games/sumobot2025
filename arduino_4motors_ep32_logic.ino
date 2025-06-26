@@ -38,15 +38,15 @@
 
 // PIN ASSIGNMENT
 const int TOP_LEFT_R_PWM = 13;
-const int TOP_RIGHT_R_PWM = 5;
+const int TOP_RIGHT_R_PWM = 4;
 const int BOTTOM_LEFT_R_PWM = 12;
-const int BOTTOM_RIGHT_R_PWM = 3;
+const int BOTTOM_RIGHT_R_PWM = 2;
 
 /// PWM pins (backward motion) (we will use Digital Pins 2, 4, 12 and 13 for these)
 const int TOP_LEFT_L_PWM = 10;
-const int TOP_RIGHT_L_PWM = 4;
+const int TOP_RIGHT_L_PWM = 5;
 const int BOTTOM_LEFT_L_PWM = 11;
-const int BOTTOM_RIGHT_L_PWM = 2;
+const int BOTTOM_RIGHT_L_PWM = 3;
 
 /// IS pins (current sensing, hardwired to GND)
 /// TOP_LEFT_R_IS, TOP_RIGHT_R_IS, BOTTOM_LEFT_R_IS, BOTTOM_RIGHT_R_IS
